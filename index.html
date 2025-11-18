@@ -1,81 +1,140 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>File 2: Data Analysis & Charts</title>
+    <title>Model Comparison Viewer</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <!-- Insert the rest of your original CSS here -->
-</head>
-<body>
-
-    <!-- START NAVIGATION COMPONENT -->
     <style>
+        :root {
+            --primary-color: #1a73e8; /* Google Blue */
+            --secondary-color: #3c4043; /* Dark Gray for text */
+            --light-bg: #f4f7f9;
+            --white-bg: #ffffff;
+            --header-height: 70px; /* Reduced header height for better content space */
+        }
+        body {
+            font-family: 'Inter', Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: var(--light-bg);
+        }
+
+        /* --- Navigation Bar (Header) Styles --- */
         .nav-bar {
-            padding: 15px 30px;
-            background-color: #f7f9fc;
-            border-bottom: 1px solid #e0e0e0;
-            margin-bottom: 30px;
+            height: var(--header-height);
+            padding: 0 30px;
+            background-color: var(--white-bg);
+            border-bottom: 2px solid #dadce0;
             display: flex;
-            justify-content: space-between;
+            justify-content: flex-start;
             align-items: center;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            gap: 20px;
         }
         
-        /* Styles for the common link */
-        .nav-bar a {
-            text-decoration: none;
-            color: #1a73e8;
-            font-weight: 600;
-            padding: 8px 15px;
-            border-radius: 4px;
-            transition: color 0.2s;
-        }
-        .nav-bar a:hover {
-            color: #0d47a1;
-        }
-        .nav-bar .back-link {
-            border: none;
-            background-color: transparent;
-            color: #555;
-        }
-        .nav-bar .back-link:hover {
-            color: #1a73e8;
-            background-color: transparent;
-            text-decoration: underline;
+        .header-title {
+            color: var(--secondary-color);
+            font-size: 20px;
+            font-weight: 500;
+            margin: 0;
+            padding-right: 20px;
+            border-right: 1px solid #dadce0;
         }
 
         /* Styles for the new dropdown selector */
         .file-select {
-            padding: 10px 15px;
-            border: 1px solid #ccc;
-            border-radius: 6px;
-            font-size: 16px;
+            padding: 8px 15px;
+            border: 1px solid #bdc1c6;
+            border-radius: 4px;
+            font-size: 15px;
             cursor: pointer;
             outline: none;
-            background-color: white;
-            color: #333;
-            transition: border-color 0.2s;
+            background-color: var(--white-bg);
+            color: var(--secondary-color);
+            transition: border-color 0.2s, box-shadow 0.2s;
+            min-width: 280px; /* Wider dropdown for long file names */
+        }
+        .file-select:hover {
+            border-color: #a0a0a0;
         }
         .file-select:focus {
-            border-color: #1a73e8;
+            border-color: var(--primary-color);
             box-shadow: 0 0 0 2px rgba(26, 115, 232, 0.2);
+        }
+
+        /* --- Iframe Content Styles and Loading Overlay --- */
+        .content-wrapper {
+            padding: 15px;
+            height: calc(100vh - var(--header-height) - 15px); /* Adjusted to fill viewport */
+            box-sizing: border-box;
+            position: relative; /* Needed for positioning the loader */
+        }
+
+        #file-viewer {
+            width: 100%;
+            height: 100%;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+            background-color: white; /* Ensures iframe is not transparent before load */
+        }
+
+        /* Loading Overlay Styles */
+        #loader-overlay {
+            position: absolute;
+            top: 15px;
+            left: 15px;
+            right: 15px;
+            bottom: 15px; 
+            background-color: rgba(255, 255, 255, 0.85); /* Semi-transparent white */
+            display: none; /* Hidden by default */
+            justify-content: center;
+            align-items: center;
+            border-radius: 8px;
+            z-index: 10;
+            transition: opacity 0.3s;
+        }
+        
+        /* CSS Spinner */
+        .spinner {
+            border: 4px solid var(--light-bg);
+            border-top: 4px solid var(--primary-color);
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
         }
     </style>
 
+    <!-- NAVIGATION BAR -->
     <div class="nav-bar">
-        <!-- Back to Index Button (Always points to index.html) -->
-        <a href="index.html" class="back-link">
-            &larr; Back to File Selection
-        </a>
-
-        <!-- Dropdown Selector - Now empty, populated by script below -->
+        <h1 class="header-title">Model Comparison Viewer</h1>
+        
+        <!-- Dropdown Selector -->
         <div class="file-navigation">
-            <select id="file-selector" class="file-select" onchange="navigateTo(this.value)">
+            <select id="file-selector" class="file-select" onchange="loadSelectedFile(this.value)">
             </select>
         </div>
+    </div>
+    <!-- END NAVIGATION COMPONENT -->
+
+    <!-- Iframe Viewer -->
+    <div class="content-wrapper">
+        <!-- Loading Overlay -->
+        <div id="loader-overlay">
+            <div class="spinner"></div>
+        </div>
+        
+        <!-- The content iframe -->
+        <iframe id="file-viewer" src="" title="Embedded File Content"></iframe>
     </div>
 
     <script>
         // 1. **THE CENTRAL MANIFEST**: Define all files here.
-        // You MUST copy and paste this entire array into every HTML file you want to have the navigation bar.
         const FILES_MANIFEST = [
             { file: "force_decode_qwen3-1.7b-distill.html", title: "force_decode_qwen3-1.7b-distill" },
             { file: "force_decode_qwen3-1.7b.html", title: "force_decode_qwen3-1.7b" },
@@ -84,51 +143,93 @@
             { file: "qwen3-1.7b-distill.html", title: "qwen3-1.7b-distill" }
         ];
 
-        // Simple function to redirect when a new option is selected
-        function navigateTo(url) {
-            if (url) {
-                window.location.href = url;
-            }
-        }
-        
-        // 2. Dynamic Population Logic
-        document.addEventListener('DOMContentLoaded', () => {
-            const selector = document.getElementById('file-selector');
-            const currentPath = window.location.pathname.split('/').pop();
+        const viewer = document.getElementById('file-viewer');
+        const selector = document.getElementById('file-selector');
+        const loader = document.getElementById('loader-overlay');
+
+        /**
+         * Loads the specified URL into the iframe and updates the URL hash for sharing/back button support.
+         * @param {string} url The filename to load.
+         */
+        function loadSelectedFile(url) {
+            if (!url) return;
+
+            // 1. Show Loading Indicator
+            loader.style.display = 'flex';
             
-            // Add the default 'Jump to' option
+            // 2. Load Content
+            viewer.src = url;
+
+            // 3. Update URL Hash for persistence and back/forward navigation
+            // This allows the user to copy the URL and share the exact file they are viewing.
+            history.pushState(null, '', '#' + url);
+        }
+
+        // Handles populating the dropdown and setting up event listeners
+        document.addEventListener('DOMContentLoaded', () => {
+            
+            // Add initial placeholder option
             const defaultOption = document.createElement('option');
             defaultOption.value = "";
-            defaultOption.text = "Jump to File...";
+            defaultOption.text = "Select a Model Report...";
             defaultOption.disabled = true;
             defaultOption.selected = true;
             selector.appendChild(defaultOption);
 
-            // Loop through the manifest and create the dropdown options
+            let initialFile = '';
+            
+            // Determine initial file from URL hash (e.g., viewer.html#report.html) or default to the first file
+            const hash = window.location.hash.slice(1); // Remove '#'
+            const files = FILES_MANIFEST.map(item => item.file);
+
+            if (hash && files.includes(hash)) {
+                initialFile = hash;
+            } else {
+                // If no valid hash, default to the first file in the manifest
+                initialFile = FILES_MANIFEST.length > 0 ? FILES_MANIFEST[0].file : '';
+            }
+
+
+            // 2. Loop through the manifest and create the dropdown options
             FILES_MANIFEST.forEach(item => {
                 const option = document.createElement('option');
                 option.value = item.file;
                 option.text = item.title;
                 
-                // If the file path matches the current page, select and disable it
-                if (item.file === currentPath) {
+                // Set the option as selected if it matches the determined initialFile
+                if (item.file === initialFile) {
                     option.selected = true;
-                    option.disabled = true;
-                    option.text += " (Current)";
                 }
+                
                 selector.appendChild(option);
             });
+
+
+            // 3. Set Initial Content Load
+            if (initialFile) {
+                // Call the loading function to set iframe src and URL hash
+                loadSelectedFile(initialFile);
+            }
+            
+            // 4. Handle iFrame Load Event (to hide loader)
+            viewer.onload = () => {
+                loader.style.display = 'none';
+            };
+            
+            // 5. Handle Browser Back/Forward buttons (History API)
+            window.onpopstate = () => {
+                const newHash = window.location.hash.slice(1);
+                if (newHash && files.includes(newHash)) {
+                    // Update dropdown selection
+                    selector.value = newHash;
+                    // Load the content without pushing a new history state
+                    loader.style.display = 'flex';
+                    viewer.src = newHash;
+                }
+            };
         });
     </script>
     <!-- END NAVIGATION COMPONENT -->
-
-
-    <!-- The original content of file2.html starts here -->
-    <div style="padding: 20px;">
-        <h1>Data Analysis & Charts</h1>
-        <p>This is the core analysis content of File 2. You can now easily navigate back to the main list or jump to any other file directly using the dropdown menu.</p>
-        <!-- More content... -->
-    </div>
 
 </body>
 </html>
