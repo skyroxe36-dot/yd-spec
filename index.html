@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Model Comparison Viewer</title>
+    <title>Model Report Comparison Viewer</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <style>
         :root {
@@ -9,49 +9,53 @@
             --secondary-color: #3c4043; /* Dark Gray for text */
             --light-bg: #f4f7f9;
             --white-bg: #ffffff;
-            --header-height: 70px; /* Reduced header height for better content space */
+            --header-height: 70px;
         }
         body {
             font-family: 'Inter', Arial, sans-serif;
             margin: 0;
             padding: 0;
             background-color: var(--light-bg);
+            display: flex;
+            flex-direction: column;
+            height: 100vh; /* Use full viewport height */
         }
 
         /* --- Navigation Bar (Header) Styles --- */
         .nav-bar {
             height: var(--header-height);
-            padding: 0 30px;
+            padding: 0 15px; /* Less padding to accommodate two dropdowns */
             background-color: var(--white-bg);
             border-bottom: 2px solid #dadce0;
             display: flex;
             justify-content: flex-start;
             align-items: center;
             box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-            gap: 20px;
+            gap: 15px; /* Space between elements */
+            flex-wrap: wrap; /* Allow wrapping on small screens */
         }
         
         .header-title {
             color: var(--secondary-color);
-            font-size: 20px;
+            font-size: 18px; 
             font-weight: 500;
             margin: 0;
-            padding-right: 20px;
+            padding-right: 15px;
             border-right: 1px solid #dadce0;
         }
 
-        /* Styles for the new dropdown selector */
+        /* Styles for the two dropdown selectors */
         .file-select {
-            padding: 8px 15px;
+            padding: 8px 12px;
             border: 1px solid #bdc1c6;
             border-radius: 4px;
-            font-size: 15px;
+            font-size: 14px; 
             cursor: pointer;
             outline: none;
             background-color: var(--white-bg);
             color: var(--secondary-color);
             transition: border-color 0.2s, box-shadow 0.2s;
-            min-width: 280px; /* Wider dropdown for long file names */
+            min-width: 250px; 
         }
         .file-select:hover {
             border-color: #a0a0a0;
@@ -61,76 +65,121 @@
             box-shadow: 0 0 0 2px rgba(26, 115, 232, 0.2);
         }
 
-        /* --- Iframe Content Styles and Loading Overlay --- */
-        .content-wrapper {
-            padding: 15px;
-            height: calc(100vh - var(--header-height) - 15px); /* Adjusted to fill viewport */
-            box-sizing: border-box;
-            position: relative; /* Needed for positioning the loader */
-        }
-
-        #file-viewer {
-            width: 100%;
-            height: 100%;
-            border: 1px solid #ccc;
-            border-radius: 8px;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
-            background-color: white; /* Ensures iframe is not transparent before load */
-        }
-
-        /* Loading Overlay Styles */
-        #loader-overlay {
-            position: absolute;
-            top: 15px;
-            left: 15px;
-            right: 15px;
-            bottom: 15px; 
-            background-color: rgba(255, 255, 255, 0.85); /* Semi-transparent white */
-            display: none; /* Hidden by default */
-            justify-content: center;
+        /* Grouping for label and selector (if needed) */
+        .select-group {
+            display: flex;
             align-items: center;
+            gap: 8px;
+        }
+
+        /* --- Comparison Content Styles --- */
+        .content-wrapper {
+            flex-grow: 1; /* Take up all remaining vertical space */
+            padding: 15px;
+            box-sizing: border-box;
+            display: flex; /* Enables side-by-side view */
+            gap: 15px; /* Space between the two iframes */
+        }
+
+        .iframe-container {
+            width: 50%; /* Each takes half the width */
+            height: 100%;
+            box-sizing: border-box;
+            display: flex;
+            flex-direction: column;
             border-radius: 8px;
-            z-index: 10;
-            transition: opacity 0.3s;
+            overflow: hidden; 
+        }
+
+        .pane-header {
+            background-color: var(--secondary-color);
+            color: white;
+            padding: 8px 15px;
+            font-weight: 600;
+            font-size: 14px;
+            border-top-left-radius: 8px;
+            border-top-right-radius: 8px;
+            text-align: center;
+        }
+
+        #file-viewer-left, #file-viewer-right {
+            flex-grow: 1; 
+            width: 100%;
+            border: 1px solid #ccc;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+            background-color: white;
+            border-radius: 0 0 8px 8px; /* Only bottom corners */
+            border-top: none; 
         }
         
-        /* CSS Spinner */
-        .spinner {
-            border: 4px solid var(--light-bg);
-            border-top: 4px solid var(--primary-color);
-            border-radius: 50%;
-            width: 40px;
-            height: 40px;
-            animation: spin 1s linear infinite;
-        }
-
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
+        /* Mobile/Small Screen Responsiveness */
+        @media (max-width: 1100px) {
+            .nav-bar {
+                height: auto;
+                flex-direction: column;
+                align-items: flex-start;
+                padding-bottom: 10px;
+            }
+            .header-title {
+                padding-bottom: 5px;
+                border-right: none;
+                border-bottom: 1px solid #dadce0;
+                width: 100%;
+                margin-bottom: 10px;
+            }
+            .select-group {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 5px;
+                width: 100%;
+            }
+            .file-select {
+                min-width: 100%; /* Full width on mobile */
+                margin-bottom: 10px;
+            }
+            .content-wrapper {
+                flex-direction: column; /* Stack iframes vertically */
+                gap: 10px;
+            }
+            .iframe-container {
+                width: 100%;
+                height: 50vh; /* Give each iframe half the viewport height */
+                min-height: 300px;
+            }
         }
     </style>
 
     <!-- NAVIGATION BAR -->
     <div class="nav-bar">
-        <h1 class="header-title">Model Comparison Viewer</h1>
+        <h1 class="header-title">Model Report Comparison Viewer</h1>
         
-        <!-- Dropdown Selector -->
-        <div class="file-navigation">
-            <select id="file-selector" class="file-select" onchange="loadSelectedFile(this.value)">
+        <!-- Left Dropdown Selector -->
+        <div class="select-group">
+            <select id="file-selector-left" class="file-select" onchange="selectFile(this.value, 'left')">
+            </select>
+        </div>
+
+        <!-- Right Dropdown Selector -->
+        <div class="select-group">
+            <select id="file-selector-right" class="file-select" onchange="selectFile(this.value, 'right')">
             </select>
         </div>
     </div>
     <!-- END NAVIGATION COMPONENT -->
 
-    <!-- Iframe Viewer -->
+    <!-- Iframe Comparison View -->
     <div class="content-wrapper">
-        <!-- Loading Overlay -->
-        <div id="loader-overlay">
-            <div class="spinner"></div>
+        <!-- Left Pane -->
+        <div class="iframe-container">
+            <div class="pane-header">LEFT VIEW</div>
+            <iframe id="file-viewer-left" src="" title="Left Report View" frameborder="0"></iframe>
         </div>
         
-        <!-- The content iframe -->
-        <iframe id="file-viewer" src="" title="Embedded File Content"></iframe>
+        <!-- Right Pane -->
+        <div class="iframe-container">
+            <div class="pane-header">RIGHT VIEW</div>
+            <iframe id="file-viewer-right" src="" title="Right Report View" frameborder="0"></iframe>
+        </div>
     </div>
 
     <script>
@@ -143,93 +192,131 @@
             { file: "qwen3-1.7b-distill.html", title: "qwen3-1.7b-distill" }
         ];
 
-        const viewer = document.getElementById('file-viewer');
-        const selector = document.getElementById('file-selector');
-        const loader = document.getElementById('loader-overlay');
+        const viewerLeft = document.getElementById('file-viewer-left');
+        const viewerRight = document.getElementById('file-viewer-right');
+        const selectorLeft = document.getElementById('file-selector-left');
+        const selectorRight = document.getElementById('file-selector-right');
 
         /**
-         * Loads the specified URL into the iframe and updates the URL hash for sharing/back button support.
-         * @param {string} url The filename to load.
+         * Updates the URL hash with the currently selected files for both panes.
+         * The format is #left_file.html&right_file.html
+         * @param {string} leftFile The file name in the left pane.
+         * @param {string} rightFile The file name in the right pane.
          */
-        function loadSelectedFile(url) {
-            if (!url) return;
-
-            // 1. Show Loading Indicator
-            loader.style.display = 'flex';
-            
-            // 2. Load Content
-            viewer.src = url;
-
-            // 3. Update URL Hash for persistence and back/forward navigation
-            // This allows the user to copy the URL and share the exact file they are viewing.
-            history.pushState(null, '', '#' + url);
+        function updateHash(leftFile, rightFile) {
+            // Ensure both files are present before updating the hash
+            if (leftFile && rightFile) {
+                const hash = `#${leftFile}&${rightFile}`;
+                history.pushState(null, '', hash);
+            }
         }
 
-        // Handles populating the dropdown and setting up event listeners
+        /**
+         * Loads the selected URL into the correct iframe and updates the hash.
+         * @param {string} url The filename to load.
+         * @param {string} pane 'left' or 'right'.
+         */
+        function selectFile(url, pane) {
+            if (!url) return;
+
+            let currentLeft = selectorLeft.value;
+            let currentRight = selectorRight.value;
+
+            if (pane === 'left') {
+                viewerLeft.src = url;
+                currentLeft = url;
+            } else if (pane === 'right') {
+                viewerRight.src = url;
+                currentRight = url;
+            }
+            
+            updateHash(currentLeft, currentRight);
+        }
+
+        // Handles populating the dropdowns and setting up event listeners
         document.addEventListener('DOMContentLoaded', () => {
             
-            // Add initial placeholder option
-            const defaultOption = document.createElement('option');
-            defaultOption.value = "";
-            defaultOption.text = "Select a Model Report...";
-            defaultOption.disabled = true;
-            defaultOption.selected = true;
-            selector.appendChild(defaultOption);
+            // Utility function to populate a single selector
+            const populateSelector = (selector, initialSelection) => {
+                // Add initial placeholder option (unselected)
+                const defaultOption = document.createElement('option');
+                defaultOption.value = "";
+                defaultOption.text = "Select a Model Report...";
+                defaultOption.disabled = true;
+                defaultOption.selected = !initialSelection; // Select placeholder if no file set
+                selector.appendChild(defaultOption);
 
-            let initialFile = '';
-            
-            // Determine initial file from URL hash (e.g., viewer.html#report.html) or default to the first file
-            const hash = window.location.hash.slice(1); // Remove '#'
-            const files = FILES_MANIFEST.map(item => item.file);
-
-            if (hash && files.includes(hash)) {
-                initialFile = hash;
-            } else {
-                // If no valid hash, default to the first file in the manifest
-                initialFile = FILES_MANIFEST.length > 0 ? FILES_MANIFEST[0].file : '';
-            }
-
-
-            // 2. Loop through the manifest and create the dropdown options
-            FILES_MANIFEST.forEach(item => {
-                const option = document.createElement('option');
-                option.value = item.file;
-                option.text = item.title;
+                FILES_MANIFEST.forEach(item => {
+                    const option = document.createElement('option');
+                    option.value = item.file;
+                    option.text = item.title;
+                    
+                    if (item.file === initialSelection) {
+                        option.selected = true;
+                    }
+                    
+                    selector.appendChild(option);
+                });
                 
-                // Set the option as selected if it matches the determined initialFile
-                if (item.file === initialFile) {
-                    option.selected = true;
+                // If a file was explicitly set as initial, make sure the selector reflects it
+                if (initialSelection) {
+                    selector.value = initialSelection;
                 }
+            };
+
+            // 1. Determine Initial Files from Hash or Defaults
+            let initialLeftFile = FILES_MANIFEST.length > 0 ? FILES_MANIFEST[0].file : '';
+            let initialRightFile = FILES_MANIFEST.length > 1 ? FILES_MANIFEST[1].file : '';
+            
+            const hash = window.location.hash.slice(1);
+            const validFiles = FILES_MANIFEST.map(item => item.file);
+
+            if (hash) {
+                // Hash format is expected to be file1.html&file2.html
+                const filesInHash = hash.split('&');
                 
-                selector.appendChild(option);
-            });
-
-
-            // 3. Set Initial Content Load
-            if (initialFile) {
-                // Call the loading function to set iframe src and URL hash
-                loadSelectedFile(initialFile);
+                if (filesInHash.length >= 1 && validFiles.includes(filesInHash[0])) {
+                    initialLeftFile = filesInHash[0];
+                }
+                if (filesInHash.length >= 2 && validFiles.includes(filesInHash[1])) {
+                    initialRightFile = filesInHash[1];
+                }
             }
             
-            // 4. Handle iFrame Load Event (to hide loader)
-            viewer.onload = () => {
-                loader.style.display = 'none';
-            };
-            
-            // 5. Handle Browser Back/Forward buttons (History API)
+            // 2. Populate Dropdowns and Load Content
+            populateSelector(selectorLeft, initialLeftFile);
+            populateSelector(selectorRight, initialRightFile);
+
+            if (initialLeftFile) {
+                viewerLeft.src = initialLeftFile;
+            }
+            if (initialRightFile) {
+                viewerRight.src = initialRightFile;
+            }
+
+            // Ensure the hash reflects the initial state
+            updateHash(initialLeftFile, initialRightFile);
+
+
+            // 3. Handle Browser Back/Forward buttons (History API)
             window.onpopstate = () => {
                 const newHash = window.location.hash.slice(1);
-                if (newHash && files.includes(newHash)) {
-                    // Update dropdown selection
-                    selector.value = newHash;
-                    // Load the content without pushing a new history state
-                    loader.style.display = 'flex';
-                    viewer.src = newHash;
+                if (newHash) {
+                    const filesInHash = newHash.split('&');
+                    if (filesInHash.length === 2) {
+                        const leftFile = filesInHash[0];
+                        const rightFile = filesInHash[1];
+                        
+                        // Update selections and load content
+                        selectorLeft.value = leftFile;
+                        viewerLeft.src = leftFile;
+                        
+                        selectorRight.value = rightFile;
+                        viewerRight.src = rightFile;
+                    }
                 }
             };
         });
     </script>
-    <!-- END NAVIGATION COMPONENT -->
-
 </body>
 </html>
