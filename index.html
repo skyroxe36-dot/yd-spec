@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>File 2: Data Analysis & Charts</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- Insert the rest of your original CSS here -->
+</head>
+<body>
+
+    <!-- START NAVIGATION COMPONENT -->
+    <style>
+        .nav-bar {
+            padding: 15px 30px;
+            background-color: #f7f9fc;
+            border-bottom: 1px solid #e0e0e0;
+            margin-bottom: 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        /* Styles for the common link */
+        .nav-bar a {
+            text-decoration: none;
+            color: #1a73e8;
+            font-weight: 600;
+            padding: 8px 15px;
+            border-radius: 4px;
+            transition: color 0.2s;
+        }
+        .nav-bar a:hover {
+            color: #0d47a1;
+        }
+        .nav-bar .back-link {
+            border: none;
+            background-color: transparent;
+            color: #555;
+        }
+        .nav-bar .back-link:hover {
+            color: #1a73e8;
+            background-color: transparent;
+            text-decoration: underline;
+        }
+
+        /* Styles for the new dropdown selector */
+        .file-select {
+            padding: 10px 15px;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+            font-size: 16px;
+            cursor: pointer;
+            outline: none;
+            background-color: white;
+            color: #333;
+            transition: border-color 0.2s;
+        }
+        .file-select:focus {
+            border-color: #1a73e8;
+            box-shadow: 0 0 0 2px rgba(26, 115, 232, 0.2);
+        }
+    </style>
+
+    <div class="nav-bar">
+        <!-- Back to Index Button (Always points to index.html) -->
+        <a href="index.html" class="back-link">
+            &larr; Back to File Selection
+        </a>
+
+        <!-- Dropdown Selector - Now empty, populated by script below -->
+        <div class="file-navigation">
+            <select id="file-selector" class="file-select" onchange="navigateTo(this.value)">
+            </select>
+        </div>
+    </div>
+
+    <script>
+        // 1. **THE CENTRAL MANIFEST**: Define all files here.
+        // You MUST copy and paste this entire array into every HTML file you want to have the navigation bar.
+        const FILES_MANIFEST = [
+            { file: "force_decode_qwen3-1.7b-distill.html", title: "force_decode_qwen3-1.7b-distill" },
+            { file: "force_decode_qwen3-1.7b.html", title: "force_decode_qwen3-1.7b" },
+            { file: "lyf90_14b.html", title: "lyf90_14b" },
+            { file: "qwen3-1.7b.html", title: "qwen3-1.7b" },
+            { file: "qwen3-1.7b-distill.html", title: "qwen3-1.7b-distill" }
+        ];
+
+        // Simple function to redirect when a new option is selected
+        function navigateTo(url) {
+            if (url) {
+                window.location.href = url;
+            }
+        }
+        
+        // 2. Dynamic Population Logic
+        document.addEventListener('DOMContentLoaded', () => {
+            const selector = document.getElementById('file-selector');
+            const currentPath = window.location.pathname.split('/').pop();
+            
+            // Add the default 'Jump to' option
+            const defaultOption = document.createElement('option');
+            defaultOption.value = "";
+            defaultOption.text = "Jump to File...";
+            defaultOption.disabled = true;
+            defaultOption.selected = true;
+            selector.appendChild(defaultOption);
+
+            // Loop through the manifest and create the dropdown options
+            FILES_MANIFEST.forEach(item => {
+                const option = document.createElement('option');
+                option.value = item.file;
+                option.text = item.title;
+                
+                // If the file path matches the current page, select and disable it
+                if (item.file === currentPath) {
+                    option.selected = true;
+                    option.disabled = true;
+                    option.text += " (Current)";
+                }
+                selector.appendChild(option);
+            });
+        });
+    </script>
+    <!-- END NAVIGATION COMPONENT -->
+
+
+    <!-- The original content of file2.html starts here -->
+    <div style="padding: 20px;">
+        <h1>Data Analysis & Charts</h1>
+        <p>This is the core analysis content of File 2. You can now easily navigate back to the main list or jump to any other file directly using the dropdown menu.</p>
+        <!-- More content... -->
+    </div>
+
+</body>
+</html>
